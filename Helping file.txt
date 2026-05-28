@@ -1,0 +1,35 @@
+Location  D:\Manish\AI_Agent\ai_agent> 
+	Activate the environment - Name of environment is env_ai
+				.\ai\Scripts\activate  
+
+The project is in env_ai folder
+
+env_ai/
+│
+├── app/
+│   └── streamlit_app.py
+│
+├── tools/
+│   └── aqi_tool.py
+│
+├── data/
+│
+├── utils/
+│
+├── requirements.txt
+│
+└── .env
+
+pip install streamlit requests pandas plotly python-dotenv
+
+phase 2 architecture
+
+User Query
+      ↓
+LLM (Ollama / Llama3)
+      ↓
+Tool Calling
+      ↓
+AQI Tool
+      ↓
+Natural Language Response
