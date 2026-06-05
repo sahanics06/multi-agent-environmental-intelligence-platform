@@ -14,6 +14,13 @@ from langchain_ollama import ChatOllama
 from tools.aqi_tool import get_air_quality
 from utils.constants import AVAILABLE_CITIES
 
+from forecasting.forecast_tool import (
+    get_pm25_forecast
+)
+
+from utils.intents import (
+    is_forecast_query
+)
 
 class AQIAgent:
 
@@ -88,9 +95,9 @@ class AQIAgent:
             )
 
         city = self.extract_city(
-            query,
-            chat_history
-        )
+                query,
+                chat_history
+            )
 
         if city is None:
 
@@ -99,6 +106,46 @@ class AQIAgent:
                 f"Supported cities:\n"
                 f"{', '.join(AVAILABLE_CITIES)}"
             )
+
+        if is_forecast_query(query):
+
+            (
+                historical_df,
+                forecast_df,
+                _
+            ) = get_pm25_forecast(
+                city=city,
+                days=7
+            )
+
+            forecast_value = (
+                forecast_df.tail(24)["yhat"]
+                .mean()
+            )
+
+            prompt = f"""
+            User Question:
+            {query}
+
+            City:
+            {city}
+
+            Predicted PM2.5:
+            {forecast_value:.2f}
+
+            Explain:
+
+            1. AQI forecast
+            2. Outdoor activity advice
+            3. Health implications
+            """
+
+            response = self.llm.invoke(
+                prompt
+            )
+
+            return response.content
+
 
         data = get_air_quality(city)
 
