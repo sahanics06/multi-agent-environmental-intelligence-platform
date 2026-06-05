@@ -47,7 +47,8 @@ page = st.sidebar.radio(
     "Select Module",
     [
         "AQI Dashboard",
-        "AI Assistant"
+        "AI Assistant",
+        "Forecasting"
     ]
 )
 
@@ -278,3 +279,95 @@ elif page == "AI Assistant":
             "role": "assistant",
             "content": response
         })
+
+
+#========================================
+# Forecasting
+#========================================
+
+elif page == "Forecasting":
+
+    st.header(
+        "AQI Forecasting"
+    )
+
+    city = st.selectbox(
+        "Select City",
+        AVAILABLE_CITIES,
+        key="forecast_city"
+    )
+
+    if st.button(
+        "Generate Forecast"
+    ):
+
+        from forecasting.forecast_tool import (
+            get_pm25_forecast
+        )
+
+        with st.spinner(
+            "Training model..."
+        ):
+
+            (
+                historical_df,
+                forecast_df,
+                forecaster
+            ) = (
+                get_pm25_forecast(
+                    city=city,
+                    days=7
+                )
+            )
+
+        st.success(
+            "Forecast generated."
+        )
+
+        fig = (
+            forecaster
+            .create_forecast_chart(
+                historical_df,
+                forecast_df
+            )
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
+        latest_prediction = (
+            forecast_df
+            .iloc[-1]["yhat"]
+        )
+
+        st.subheader(
+            "Forecast Summary"
+        )
+
+        st.metric(
+            "Predicted PM2.5",
+            round(
+                latest_prediction,
+                2
+            )
+        )
+
+        if latest_prediction <= 12:
+
+            st.success(
+                "Expected AQI: Good"
+            )
+
+        elif latest_prediction <= 35:
+
+            st.warning(
+                "Expected AQI: Moderate"
+            )
+
+        else:
+
+            st.error(
+                "Expected AQI: Unhealthy"
+            )
