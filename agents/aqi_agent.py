@@ -22,6 +22,18 @@ from utils.intents import (
     is_forecast_query
 )
 
+from agents.supervisor_agent import (
+    SupervisorAgent
+)
+
+from utils.intents import (
+    is_health_query
+)
+
+from agents.supervisor_agent import (
+    SupervisorAgent
+)
+
 class AQIAgent:
 
     def __init__(self):
@@ -29,6 +41,9 @@ class AQIAgent:
         self.llm = ChatOllama(
             model="llama3",
             temperature=0
+        )
+        self.supervisor = (
+            SupervisorAgent()
         )
 
     def extract_city(
@@ -157,6 +172,37 @@ class AQIAgent:
             )
 
         row = data.iloc[0]
+
+        if is_health_query(query):
+
+            profile = "general"
+
+            q = query.lower()
+
+            if "asthma" in q:
+                profile = "asthma"
+
+            elif (
+                "child" in q
+                or
+                "children" in q
+            ):
+                profile = "child"
+
+            elif "elderly" in q:
+                profile = "elderly"
+
+            return (
+                self.supervisor
+                .route_health_query(
+                    profile=profile,
+                    city=city,
+                    pm25=row["pm2_5"],
+                    aqi_category=row[
+                        "aqi_category"
+                    ]
+                )
+            )
 
         prompt = f"""
         You are an expert
