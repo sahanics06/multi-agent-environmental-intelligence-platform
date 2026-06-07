@@ -14,22 +14,6 @@ from langchain_ollama import ChatOllama
 from tools.aqi_tool import get_air_quality
 from utils.constants import AVAILABLE_CITIES
 
-from forecasting.forecast_tool import (
-    get_pm25_forecast
-)
-
-from utils.intents import (
-    is_forecast_query
-)
-
-from agents.supervisor_agent import (
-    SupervisorAgent
-)
-
-from utils.intents import (
-    is_health_query
-)
-
 from agents.supervisor_agent import (
     SupervisorAgent
 )
@@ -122,45 +106,6 @@ class AQIAgent:
                 f"{', '.join(AVAILABLE_CITIES)}"
             )
 
-        if is_forecast_query(query):
-
-            (
-                historical_df,
-                forecast_df,
-                _
-            ) = get_pm25_forecast(
-                city=city,
-                days=7
-            )
-
-            forecast_value = (
-                forecast_df.tail(24)["yhat"]
-                .mean()
-            )
-
-            prompt = f"""
-            User Question:
-            {query}
-
-            City:
-            {city}
-
-            Predicted PM2.5:
-            {forecast_value:.2f}
-
-            Explain:
-
-            1. AQI forecast
-            2. Outdoor activity advice
-            3. Health implications
-            """
-
-            response = self.llm.invoke(
-                prompt
-            )
-
-            return response.content
-
 
         data = get_air_quality(city)
 
@@ -173,40 +118,44 @@ class AQIAgent:
 
         row = data.iloc[0]
 
-        if is_health_query(query):
-
-            profile = "general"
-
-            q = query.lower()
-
-            if "asthma" in q:
-                profile = "asthma"
-
-            elif (
-                "child" in q
-                or
-                "children" in q
-            ):
-                profile = "child"
-
-            elif "elderly" in q:
-                profile = "elderly"
-
-            return (
-                self.supervisor
-                .route_health_query(
-                    profile=profile,
-                    city=city,
-                    pm25=row["pm2_5"],
-                    aqi_category=row[
-                        "aqi_category"
-                    ]
-                )
+        forecast_answer, health_answer = (
+            self.supervisor.handle_query(
+                query=query,
+                city=city,
+                pm25=row["pm2_5"],
+                aqi_category=row[
+                    "aqi_category"
+                ]
             )
+        )
+
+        if(
+            forecast_answer
+            or
+            health_answer
+        ):
+            
+            final_answer = ""
+
+            if forecast_answer:
+
+                final_answer +=(
+                    "### Forecast Analysis\n\n"
+                    + forecast_answer
+                    + "\n\n"
+                )
+
+            if health_answer:
+
+                final_answer +=(
+                    "### Health Guidance\n\n"
+                    + health_answer
+                )
+
+            return final_answer
 
         prompt = f"""
-        You are an expert
-        environmental AI assistant.
+        You are an expert environmental AI assistant.
 
         User question:
         {query}
@@ -219,12 +168,9 @@ class AQIAgent:
         City: {city}
         PM2.5: {row['pm2_5']}
         PM10: {row['pm10']}
-        NO2:
-        {row['nitrogen_dioxide']}
-        CO:
-        {row['carbon_monoxide']}
-        Ozone:
-        {row['ozone']}
+        NO2: {row['nitrogen_dioxide']}
+        CO: {row['carbon_monoxide']}
+        Ozone: {row['ozone']}
 
         AQI Category:
         {row['aqi_category']}
@@ -237,10 +183,8 @@ class AQIAgent:
         - Keep concise
         """
 
-        response = (
-            self.llm.invoke(
-                prompt
-            )
+        response = self.llm.invoke(
+            prompt
         )
 
         return response.content
