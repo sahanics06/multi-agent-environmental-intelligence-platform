@@ -1,0 +1,7 @@
+PM2.5 particles are fine inhalable particles with a diameter of 2.5 micrometers or smaller.
+
+Exposure to PM2.5 can cause respiratory diseases, cardiovascular disease, and premature death.
+
+WHO recommends minimizing long-term exposure to PM2.5.
+
+Children, elderly individuals, and people with asthma are particularly vulnerable.

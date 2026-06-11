@@ -1,0 +1,13 @@
+AQI 0-50: Good
+
+AQI 51-100: Moderate
+
+AQI 101-150: Unhealthy for Sensitive Groups
+
+AQI 151-200: Unhealthy
+
+AQI 201-300: Very Unhealthy
+
+AQI above 300: Hazardous
+
+People with asthma, heart disease, and respiratory conditions should reduce outdoor activity during high AQI periods.
