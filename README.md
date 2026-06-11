@@ -1,5 +1,4 @@
 # 🌍 Multi-Agent Environmental Intelligence Platform
-# 🌍 Multi-Agent Environmental Intelligence Platform
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue)
 ![LangChain](https://img.shields.io/badge/LangChain-AI-green)
