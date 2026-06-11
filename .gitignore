@@ -21,3 +21,13 @@ data/*.parquet
 
 # Logs
 *.log
+
+# RAG Vector Database
+vector_db/
+
+# ChromaDB cache
+chroma_db/
+
+# OS files
+.DS_Store
+Thumbs.db
